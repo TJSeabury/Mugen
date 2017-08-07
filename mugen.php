@@ -43,7 +43,7 @@ function mugen_box_shortcode( $atts = [], $content = null, $tag = '' )
 {
     $atts = array_change_key_case( (array)$atts, CASE_LOWER );
     $mugen_atts = shortcode_atts( ['title' => 'WordPress.org'], $atts, $tag );
-    $o = '<style>.mugen-box{ background-color:#f2efef; box-shadow:0 4px 4px -2px hsla(0,0%,0%,0.5); padding:2rem; }</style>';
+    $o = '<style>.mugen-box{ background-color:#f2efef; box-shadow: 0 4px 4px -2px hsla(0,0%,0%,0.3), 4px 4px 8px 0 hsla(0,0%,0%,0.05), -4px 4px 8px 0 hsla(0,0%,0%,0.05) !important; padding:2rem; }</style>';
     $o .= '<div class="mugen-box">';
     $o .= '<h2>' . esc_html__( $mugen_atts['title'], 'mugen' ) . '</h2>';
     if ( !is_null( $content ) )
