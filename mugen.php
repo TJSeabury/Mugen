@@ -22,28 +22,38 @@ You should have received a copy of the GNU General Public License
 along with 無限 Mugen. If not, see https://www.gnu.org/licenses/gpl-2.0.html.
 */
 
-define( 'MUGEN_DEBUG', false );
+/*
+* Plugin root dir
+*/
+define( 'MUGEN_ROOT', __DIR__ );
+define( 'MUGEN_URL', plugin_dir_url( __FILE__ ) );
 
-register_activation_hook(__FILE__, 'mugen_activate');
+require_once( MUGEN_ROOT . '/includes/utils.php' );
 
-register_deactivation_hook(__FILE__, 'mugen_deactivate');
+register_activation_hook( __FILE__, 'mugen_activate' );
+register_deactivation_hook( __FILE__, 'mugen_deactivate' );
+register_uninstall_hook( __FILE__, 'mugen_uninstall' );
 
-register_uninstall_hook(__FILE__, 'mugen_uninstall');
 
-if ( defined( 'MUGEN_DEBUG' ) && constant( 'MUGEN_DEBUG' ) )
+if ( is_admin() )
 {
-    add_action( 'all', 'mugen_debug_actions' );
+    require_once( MUGEN_ROOT . '/admin/mugen-admin.php' );
+    //add_action( 'admin_enqueue_scripts', '' );
 }
 
-add_action( 'admin_menu', 'mugen_options_page' );
+add_action( 'init', 'mugen_shortcodes_init' );
 
-add_action('init', 'mugen_shortcodes_init');
+add_action( 'wp_enqueue_scripts', 'mugen_styles_init' );
+
+function mugen_styles_init() {
+    wp_enqueue_style( 'mugen-custom-css', MUGEN_URL . 'public/css/custom.css', array(), Mugen_utils::get_file_version( MUGEN_URL . 'public/css/custom.css' ) );
+} 
 
 function mugen_box_shortcode( $atts = [], $content = null, $tag = '' )
 {
     $atts = array_change_key_case( (array)$atts, CASE_LOWER );
     $mugen_atts = shortcode_atts( ['title' => 'WordPress.org'], $atts, $tag );
-    $o = '<style>.mugen-box{ background-color:#f2efef; box-shadow: 0 4px 4px -2px hsla(0,0%,0%,0.3), 4px 4px 8px 0 hsla(0,0%,0%,0.05), -4px 4px 8px 0 hsla(0,0%,0%,0.05) !important; padding:2rem; }</style>';
+    $o = '';
     $o .= '<div class="mugen-box">';
     $o .= '<h2>' . esc_html__( $mugen_atts['title'], 'mugen' ) . '</h2>';
     if ( !is_null( $content ) )
@@ -59,24 +69,7 @@ function mugen_button_shortcode( $atts = [], $content = null, $tag = '' )
 {
     $atts = array_change_key_case( (array)$atts, CASE_LOWER );
     $mugen_atts = shortcode_atts( ['href' => '#'], $atts, $tag );
-    $o = '<style>
-    .mugen-button {
-        position: relative;
-        display: inline-block;
-        color: white !important;
-        text-transform: uppercase;
-        font-weight: 100;
-        letter-spacing: 2px;
-        background-color: hsla(340,100%,50%,1);
-        box-shadow: 0 2px 4px -2px hsla(0,0%,0%,0.3), 1px 2px 4px 0 hsla(0,0%,0%,0.1), -1px 2px 4px 0 hsla(0,0%,0%,0.1) !important;
-        padding: 0.2rem 1rem;
-        transition: all 150ms ease-out !important;
-    }
-    .mugen-button:hover {
-        box-shadow: 0 4px 4px -2px hsla(0,0%,0%,0.3), 4px 4px 10px 0 hsla(0,0%,0%,0.1), -4px 4px 10px 0 hsla(0,0%,0%,0.1) !important;
-        transform: translateY(-2px);
-    }
-    </style>';
+    $o = '';
     $o .= '<a class="mugen-button" href="' . esc_html__( $mugen_atts['href'], mugen ) . '" >';
     if ( !is_null( $content ) )
     {
@@ -92,47 +85,16 @@ function mugen_shortcodes_init()
     add_shortcode( 'mugen-button', 'mugen_button_shortcode' );
 }
 
-function mugen_options_page_html()
-{
-    // check user capabilities
-    if ( !current_user_can( 'manage_options' ) )
-    {
-        return;
-    }
-    ?>
-    <div class="wrap">
-        <h1><?= esc_html( get_admin_page_title() ); ?></h1>
-        <form action="options.php" method="post">
-            <?php
-            // output security fields for the registered setting "mugen_options"
-            //settings_fields('mugen_options');
-            // output setting sections and their fields
-            // (sections are registered for "mugen", each field is registered to a specific section)
-            //do_settings_sections('mugen');
-            // output save settings button
-            //submit_button('Save Settings');
-            ?>
-        </form>
-    </div>
-    <?php
-}
-
-function mugen_options_page()
-{
-    add_menu_page(
-        'Mugen',
-        'Mugen Options',
-        'manage_options',
-        'mugen',
-        'mugen_options_page_html',
-        plugin_dir_url(__FILE__) . 'img/mugen-icon.png',
-        20
-    );
-}
-
 function mugen_activate()
 {
-
+    $path =  MUGEN_ROOT . '/public/css/custom.css';
+    if ( is_writable( $path ) && !file_exists( $path ) )
+    {
+        $c = '';
+        $f = fopen( $path, 'wb' );
+        fwrite( $f, $c );
+        fclose( $f );
+    }
 }
 
 function mugen_deactivate()
@@ -143,9 +105,4 @@ function mugen_deactivate()
 function mugen_uninstall()
 {
     
-}
-
-function mugen_debug_actions()
-{
-    echo '<p>' . current_action() . '</p>';
 }

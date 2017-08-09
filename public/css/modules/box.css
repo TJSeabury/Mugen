@@ -1,0 +1,5 @@
+.mugen-box {
+    padding: 2rem;
+    background-color:#f2efef;
+    box-shadow: 0 4px 4px -2px hsla(0,0%,0%,0.3), 4px 4px 8px 0 hsla(0,0%,0%,0.05), -4px 4px 8px 0 hsla(0,0%,0%,0.05) !important;
+}
