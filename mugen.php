@@ -46,7 +46,7 @@ add_action( 'init', 'mugen_shortcodes_init' );
 add_action( 'wp_enqueue_scripts', 'mugen_styles_init' );
 
 function mugen_styles_init() {
-    wp_enqueue_style( 'mugen-custom-css', MUGEN_URL . 'public/css/custom.css', array(), Mugen_utils::get_file_version( MUGEN_URL . 'public/css/custom.css' ) );
+    wp_enqueue_style( 'mugen-aggregate-styles', MUGEN_URL . 'public/css/aggregate-styles.min.css', array(), Mugen_utils::get_file_version( MUGEN_URL . 'public/css/aggregate-styles.min.css' ) );
 } 
 
 function mugen_box_shortcode( $atts = [], $content = null, $tag = '' )
@@ -87,10 +87,16 @@ function mugen_shortcodes_init()
 
 function mugen_activate()
 {
-    $path =  MUGEN_ROOT . '/public/css/custom.css';
-    if ( is_writable( $path ) && !file_exists( $path ) )
+    $path =  MUGEN_ROOT . '/public/css/aggregate-styles.min.css';
+    if ( true /* is_writable( $path ) */ /* && !file_exists( $path ) */ )
     {
         $c = '';
+        foreach( array_filter( glob( MUGEN_ROOT . '/public/css/modules/*.css' ), 'is_file' ) as $file )
+        {
+            $c .= file_get_contents( $file );
+            $c .= "\n";
+        }
+        $c = str_replace( array( ' {', ': ', ', ' ), array( '{', ':', ',' ) , str_replace( array( "\r\n", "\r", "\n", "\t", '  ', '    ', '    ' ), '', preg_replace( '!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $c ) ) );
         $f = fopen( $path, 'wb' );
         fwrite( $f, $c );
         fclose( $f );
